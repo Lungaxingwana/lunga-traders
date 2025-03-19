@@ -17,7 +17,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useUser } from "@/contexts/UserContext";
 import { toast, Toaster } from "sonner";
 import { ImSpinner9 } from "react-icons/im";
-
+import SwiperCore from "swiper";
 export default function ViewProduct() {
   const { selectedProductId } = useSelectedMode();
   const { user } = useUser();
@@ -57,7 +57,8 @@ export default function ViewProduct() {
   }, [cartCount, refetch, cartPro]);
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0); // Track the selected image index
-  const swiperRef = useRef<Swiper | null>(null); // Reference to the Swiper instance
+ // Ensure SwiperCore is imported
+  const swiperRef = useRef<SwiperCore | null>(null); // Reference to the Swiper instance
 
   if (!product)
     return (
