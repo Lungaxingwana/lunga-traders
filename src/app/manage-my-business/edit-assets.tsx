@@ -9,6 +9,7 @@ import { Product } from "@/data-types/product";
 import ImagesInformation from "./images-information";
 import { useState } from "react";
 import { convertImageToBase64 } from "@/utils/util";
+import { RiEdit2Fill } from "react-icons/ri";
 
 export default function EditAsset() {
   const { data: allProducts } = useQuery<Product[]>({
