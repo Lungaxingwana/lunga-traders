@@ -11,12 +11,12 @@ import { formatCurrency } from "@/utils/util";
 import { ImSpinner9 } from "react-icons/im";
 import axios from "axios";
 import { MdDeleteForever } from "react-icons/md";
-import Link from "next/link";
 import { useSelectedMode } from "@/contexts/SelectionModeContext";
 import { useCart } from "@/contexts/CartContext";
 import { useUser } from "@/contexts/UserContext";
 import { Product } from "@/data-types/product";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 export default function MyCart() {
   const { user } = useUser();
@@ -146,6 +146,7 @@ function CartItem({ item, index, refetch }: CartItemProps) {
   const { setSelectedProductId } = useSelectedMode();
   const { setCart } = useCart();
   const { user } = useUser();
+  const router = useRouter();
 
   const { data: allProducts } = useQuery<Product[]>({
     queryKey: ["products"],
@@ -184,7 +185,7 @@ function CartItem({ item, index, refetch }: CartItemProps) {
 
   async function handleUpdateDecrease() {
     setLoadin({ isLoading: true, action: "DECREAMENT" });
-
+    
     try {
       const response = await axios.post<Cart[]>("/api/cart/add-cart", {
         product_id: product?._id,
@@ -229,9 +230,12 @@ function CartItem({ item, index, refetch }: CartItemProps) {
         <div className="flex w-full bg-stone-200 rounded-xl p-2 shadow-md shadow-stone-400">
           <p className="">{index}.</p>
 
-          <Link
-            onClick={() => setSelectedProductId(product?._id)}
-            href="/product"
+          <button
+            onClick={(e) => {
+              e.preventDefault(); // Prevent default navigation
+              setSelectedProductId(product?._id); // Set the selected product ID
+              router.push("/view-product"); // Navigate programmatically
+            }}
             className="w-2/12 justify-center align-middle items-center flex"
           >
             <Image
@@ -241,7 +245,7 @@ function CartItem({ item, index, refetch }: CartItemProps) {
               height={80}
               className="w-20 h-20 shadow-md shadow-stone-500 rounded-full align-middle items-center justify-center"
             />
-          </Link>
+          </button>
           <div className="w-8/12 items-center align-middle justify-center">
             <p className="sm:text-lg font-bold">
               {product?.color} {product?.make} {product?.model}

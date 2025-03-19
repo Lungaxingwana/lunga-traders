@@ -16,11 +16,12 @@ import { FaArrowAltCircleLeft, FaArrowAltCircleRight } from "react-icons/fa";
 import { useCart } from "@/contexts/CartContext";
 import { useUser } from "@/contexts/UserContext";
 import { toast, Toaster } from "sonner";
+import { ImSpinner9 } from "react-icons/im";
 
 export default function ViewProduct() {
   const { selectedProductId } = useSelectedMode();
   const { user } = useUser();
-  const {cartCount, setCartCount} = useCart();
+  const { cartCount, setCartCount } = useCart();
 
   const { data: allCart, refetch } = useQuery<Cart[]>({
     queryKey: ["all-cart"],
@@ -40,8 +41,11 @@ export default function ViewProduct() {
     },
   });
 
-  const [loading, setLoading] = useState({ isLoading: false, action: "DECREAMENT" });
- 
+  const [loading, setLoading] = useState({
+    isLoading: false,
+    action: "DECREAMENT",
+  });
+
   const product = allProducts?.find((prod) => prod._id === selectedProductId);
   const cartPro = allCart?.find((item) => item.product_id === product?._id);
 
@@ -66,10 +70,10 @@ export default function ViewProduct() {
     );
 
   async function handleDecreaseQuantity() {
-    setLoading({isLoading: true, action: "DECREAMENT"});
+    setLoading({ isLoading: true, action: "DECREAMENT" });
     const newCartCount = cartCount - 1; // Optimistic update
     setCartCount(newCartCount);
-    
+
     try {
       await axios.post<Cart[]>("/api/cart/add-cart", {
         product_id: product?._id,
@@ -78,18 +82,22 @@ export default function ViewProduct() {
         action: "DECREAMENT",
       });
       toast.success("SUCCESSFUL: Removed cart");
+      refetch();
     } catch (error) {
-       // Revert cart count if API call fails
-      toast.error("FAILED: Did not add or update cart!!! {hint: LOGIN FIRST}", error || "");
+      // Revert cart count if API call fails
+      toast.error(
+        "FAILED: Did not add or update cart!!! {hint: LOGIN FIRST}",
+        error || ""
+      );
     } finally {
-      setLoading({isLoading: false, action: "DECREAMENT"});
+      setLoading({ isLoading: false, action: "DECREAMENT" });
     }
   }
   async function handleIncreaseQuantity() {
-    setLoading({isLoading: true, action: "INCREAMENT"});
+    setLoading({ isLoading: true, action: "INCREAMENT" });
     const newCartCount = cartCount + 1; // Optimistic update
     setCartCount(newCartCount);
-    
+
     try {
       await axios.post<Cart[]>("/api/cart/add-cart", {
         product_id: product?._id,
@@ -98,11 +106,15 @@ export default function ViewProduct() {
         action: "INCREAMENT",
       });
       toast.success("SUCCESSFUL: Added to cart");
+      refetch();
     } catch (error) {
-       // Revert cart count if API call fails
-      toast.error("FAILED: Did not add or update cart!!! {hint: LOGIN FIRST}", error || "");
+      // Revert cart count if API call fails
+      toast.error(
+        "FAILED: Did not add or update cart!!! {hint: LOGIN FIRST}",
+        error || ""
+      );
     } finally {
-      setLoading({isLoading: false, action: "INCREAMENT"});
+      setLoading({ isLoading: false, action: "INCREAMENT" });
     }
   }
 
@@ -201,16 +213,33 @@ export default function ViewProduct() {
 
             <p className="mt-5">Quantity</p>
             <div className="w-full justify-evenly items-center align-middle flex ">
-              <button onClick={handleDecreaseQuantity} className="shadow-black shadow-lg rounded-full border border-black hover:bg-stone-500 active:opacity-40">
-                <FaArrowAltCircleLeft size={40} className="text-stone-600" />
+              <button
+              disabled={cartPro?.quantity === 1 || loading.isLoading}
+                onClick={handleDecreaseQuantity} color={'black'}
+                className={`shadow-black bg-stone-300 ${cartPro?.quantity===1 && 'opacity-30'} shadow-lg rounded-full border border-black hover:bg-stone-500 active:opacity-40`}
+              >
+                {loading.isLoading && loading.action === "DECREAMENT" ? (
+                  <ImSpinner9 className="animate-spin" size={40} color={`${cartPro?.quantity===1 && '##ff6600'}`}/>
+                ) : (
+                  <FaArrowAltCircleLeft size={40} className="text-stone-600" />
+                )}
               </button>
+              
               <div className="max-w-[80px] w-full h-[40px] bg-white shadow-black shadow-lg  rounded overflow-hidden justify-center items-center align-middle flex">
                 <p className="text-2xl">
                   {cartPro ? cartPro?.quantity : 0}/{product.stock_quantity}
                 </p>
               </div>
-              <button onClick={handleIncreaseQuantity} className="shadow-black shadow-lg rounded-full border border-black hover:bg-stone-500 active:opacity-40">
-                <FaArrowAltCircleRight size={40} className="text-stone-600" />
+              <button
+              disabled={cartPro?.quantity === product?.stock_quantity  || loading.isLoading}
+                onClick={handleIncreaseQuantity}
+                className={`shadow-black shadow-lg rounded-full ${cartPro?.quantity === product?.stock_quantity && 'opacity-30'} border border-black hover:bg-stone-500 active:opacity-40`}
+              >
+                {loading.isLoading && loading.action === "INCREAMENT" ? (
+                  <ImSpinner9 className="animate-spin" size={40} />
+                ) : (
+                  <FaArrowAltCircleRight size={40} className="text-stone-600" />
+                )}
               </button>
             </div>
             <div className="flex w-full mt-10 px-5 space-x-3 items-baseline align-middle">
