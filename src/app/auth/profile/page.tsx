@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { toast, Toaster } from 'sonner';
 import lock from '../../../../public/icons/lock-white-icon.png';
 import avatar from '../../../../public/icons/avatar-white-icon.png';
-import chair from '../../../../public/icons/chair-icon.png';
 import emailIcon from '../../../../public/icons/email-icon.png';
 import cell from '../../../../public/icons/cell-icon.png';
 import gen from '../../../../public/icons/gender-icon.png';
@@ -19,11 +18,12 @@ import { CroppedArea, CroppedAreaPixels } from "@/data-types/structure-classes";
 import getCroppedImg from "@/components/getCroppedImg";
 import ImageSelector from "@/components/image-loader";
 import { convertImageToBase64 } from "@/utils/util";
-import { User } from "@/data-types/user.type";
 import { useRouter } from "next/navigation";
+import { PiArmchairFill } from "react-icons/pi";
 
 import { ImProfile } from "react-icons/im";
-import { useUser } from "@/app/UserContext";
+import { useUser } from "@/contexts/UserContext";
+import { User } from "@/data-types/user";
 
 export default function Profile() {
     // State declarations
@@ -96,28 +96,28 @@ export default function Profile() {
             setUsernameError('');
         }
 
-        if (!cell_number.trim()) {
+        if (!cell_number?.trim()) {
             setCellNumberError('Cell Number is required.');
             isValid = false;
         } else {
             setCellNumberError('');
         }
 
-        if (!address.trim()) {
+        if (!address?.trim()) {
             setAddressError('Address is required.');
             isValid = false;
         } else {
             setAddressError('');
         }
 
-        if (!first_name.trim()) {
+        if (!first_name?.trim()) {
             setFirstNameError('First name is required.');
             isValid = false;
         } else {
             setFirstNameError('');
         }
 
-        if (!last_name.trim()) {
+        if (!last_name?.trim()) {
             setLastNameError('Last name is required.');
             isValid = false;
         } else {
@@ -156,9 +156,7 @@ export default function Profile() {
                     address: address,
                     cell_number: cell_number,
                     profile_picture: image
-                },
-                createdAt: "",
-                updatedAt: ""
+                }
             }
             setIsLoading(true);
             try {
@@ -286,7 +284,7 @@ export default function Profile() {
                         <div className='w-full  justify-center flex pb-4 px-4 align-middle items-center'>
                             <div className='bg-stone-700 flex rounded-full shadow-black shadow-md w-full h-10'>
                                 <div className='w-2/12 h-full justify-end items-center align-middle flex p-2'>
-                                    <Image src={chair} alt={"logo of the business"} className=" h-8 self-center w-8" />
+                                <PiArmchairFill size={35} color="white"/>
                                 </div>
                                 <select value={role} onChange={(e) => setRole(e.target.value)} className='outline-none px-3 text-white w-9/12 bg-transparent'>
                                     <option className="bg-stone-700 cursor-pointer" value="admin">Admin</option>

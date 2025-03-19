@@ -2,7 +2,6 @@ import { useSelectedMode } from "@/contexts/SelectionModeContext";
 import { Cart } from "@/data-types/cart";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FaCartPlus } from "react-icons/fa";
 import { ImSpinner9 } from "react-icons/im";
