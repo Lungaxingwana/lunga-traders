@@ -1,103 +1,71 @@
-import Image from "next/image";
+'use client'
+import Skeleton from "@/components/Skeleton";
+import { useSelectedMode } from "@/contexts/SelectionModeContext";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { Toaster } from 'sonner';
+import ProductItem from "./product-item";
+import { Product } from "@/data-types/product";
+import { Cart } from "@/data-types/cart";
+
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { setSearch } = useSelectedMode();
+  const { search } = useSelectedMode();
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    const { data: allProducts, isLoading } = useQuery<Product[]>({
+        queryKey: ["products"],
+        queryFn: async () => {
+            const response = await axios.get<Product[]>("/api/all-products");
+            return response.data;
+        }
+    });
+    useEffect(() => {
+        if (search) {
+            const lowerCaseSearch = search.toLowerCase();
+            const filtered = allProducts?.filter(item =>
+                item.make.toLowerCase().includes(lowerCaseSearch) ||
+                item.model.toLowerCase().includes(lowerCaseSearch) ||
+                item.year.toString().toLowerCase().includes(lowerCaseSearch) ||
+                item.color.toLowerCase().includes(lowerCaseSearch)
+            );
+            setFilteredProducts(filtered || []);
+        } else {
+            setFilteredProducts(allProducts || []);
+        }
+    }, [search, allProducts]);
+  return (
+    <div className="min-h-screen bg-stone-200 w-full ">
+      <div className="items-center justify-items-center align-middle  gap-16 mx-auto">
+      <p className="text-lg sm:text-3xl md:text-4xl font-bold mt-10 pt-6">Buy. Sell. Trade.</p>
+      <div className="align-middle justify-center mx-auto  w-full flex">
+        <input onChange={(e) => setSearch(e.target.value)} className="mt-6 p-1 sm:p-4 w-7/12 rounded-3xl shadow-md bg-white shadow-stone-400 text-center italic outline-none" placeholder="Search by Make, Model, Year or Color (any product you might thing we have for you)" />
+      </div>
+      <div className="max-w-7xl w-full items-center align-middle justify-center flex mx-auto flex-wrap rounded-xl mt-7">
+            <div className="w-full items-center align-middle justify-center">
+                <p className="text-center my-4 text-xl font-bold text-stone-500">{search === '' ? 'All Products' : search}</p>
+                {
+                    allProducts?.length === 0 ? (
+                        <div className="max-w-7xl w-full items-center align-middle justify-center mx-auto flex-wrap rounded-xl sm:mt-40 mt-10">
+                            <p className="text-3xl font-bold text-red-700 text-center">Product list is empty...</p>
+                            <p className="text-stone-500 text-center">Add product(s) under Manage-My-Business</p>
+                        </div>
+                    ) : (
+                        <div className="w-full items-center align-middle justify-center flex flex-wrap gap-2 sm:gap-8">
+                            <Toaster richColors position='top-center' />
+                            {isLoading ? (
+                                <div><Skeleton /></div>
+                            ) : (
+                                filteredProducts.map((product, index) => <ProductItem product={product} key={index} />)
+                            )}
+                        </div>
+                    )
+                }
+            </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    </div>
     </div>
   );
 }
