@@ -42,7 +42,7 @@ export default function LoggedUser() {
         <Image
           src={user.person.profile_picture || pic}
           alt={"pic"}
-          className="rounded-full sm:w-10 sm:h-10"
+          className="rounded-full sm:w-10 sm:h-10 z-40"
           width={innerWidth > 410 ? 40 : 40}
           height={innerWidth > 410 ? 40 : 40}
         />
