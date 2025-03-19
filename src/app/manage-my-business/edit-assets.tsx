@@ -1,5 +1,4 @@
 'use client';
-import { RiAddCircleFill, RiEdit2Fill } from "react-icons/ri";
 ;
 import { toast, Toaster } from "sonner";
 import axios from "axios";
@@ -9,7 +8,6 @@ import { useSelectedMode } from "@/contexts/SelectionModeContext";
 import { Product } from "@/data-types/product";
 import ImagesInformation from "./images-information";
 import { useState } from "react";
-import { BsFillBoxSeamFill } from "react-icons/bs";
 import { convertImageToBase64 } from "@/utils/util";
 
 export default function EditAsset() {

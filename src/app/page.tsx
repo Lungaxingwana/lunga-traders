@@ -7,12 +7,11 @@ import { useEffect, useState } from "react";
 import { Toaster } from 'sonner';
 import ProductItem from "./product-item";
 import { Product } from "@/data-types/product";
-import { Cart } from "@/data-types/cart";
 
 
 export default function Home() {
-  const { setSearch } = useSelectedMode();
-  const { search } = useSelectedMode();
+  const { setSearch,search } = useSelectedMode();
+  const {  } = useSelectedMode();
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
     const { data: allProducts, isLoading } = useQuery<Product[]>({

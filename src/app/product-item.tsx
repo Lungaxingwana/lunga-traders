@@ -1,4 +1,4 @@
-import { useSelectedMode } from "@/contexts/SelectionModeContext";
+
 import { Cart } from "@/data-types/cart";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -18,6 +18,7 @@ import { BsCameraFill } from "react-icons/bs";
 import { useUser } from "@/contexts/UserContext";
 import { useCart } from "@/contexts/CartContext";
 import { useRouter } from "next/navigation";
+import { useSelectedMode } from "@/contexts/SelectionModeContext";
 
 interface ProductItemProps {
   product: Product;

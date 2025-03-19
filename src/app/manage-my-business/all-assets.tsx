@@ -11,7 +11,6 @@ import { Product } from "@/data-types/product";
 
 export default function AllAssets() {
   const { user } = useUser();
-  const { setMode } = useSelectedMode();
   const { data: allProducts } = useQuery<Product[]>({
     queryKey: ["products"],
     queryFn: async () => {

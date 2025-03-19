@@ -233,7 +233,7 @@ function CartItem({ item, index, refetch }: CartItemProps) {
           <button
             onClick={(e) => {
               e.preventDefault(); // Prevent default navigation
-              setSelectedProductId(product?._id); // Set the selected product ID
+              setSelectedProductId(product?._id||''); // Set the selected product ID
               router.push("/view-product"); // Navigate programmatically
             }}
             className="w-2/12 justify-center align-middle items-center flex"
