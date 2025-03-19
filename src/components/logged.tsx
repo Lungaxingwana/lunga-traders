@@ -28,7 +28,7 @@ export default function LoggedUser() {
 
   return (
     <div className="relative flex items-center align-middle space-x-2 sm:w-7/12 justify-center gap-10">
-      <div className="relative flex items-center align-middle space-x-2 group">
+      <div className="relative flex items-center align-middle space-x-2 group z-40">
         <div className="hover:opacity-70">
           {user.email ? (
             <p className="text-[12px] font-bold text-right">
@@ -42,7 +42,7 @@ export default function LoggedUser() {
         <Image
           src={user.person.profile_picture || pic}
           alt={"pic"}
-          className="rounded-full sm:w-10 sm:h-10 z-40"
+          className="rounded-full sm:w-10 sm:h-10 z"
           width={innerWidth > 410 ? 40 : 40}
           height={innerWidth > 410 ? 40 : 40}
         />
