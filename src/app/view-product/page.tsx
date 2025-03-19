@@ -246,10 +246,10 @@ export default function ViewProduct() {
             <div className="flex w-full mt-10 px-5 space-x-3 items-baseline align-middle">
               <p>Price:</p>
               <p className="text-3xl font-bold">
-                {formatCurrency(product.sale_price)}
+                {formatCurrency(cartPro?.quantity || 1 >0 ? (product.sale_price*(cartPro?.quantity||1)):product.sale_price)}
               </p>
-              <p className="line-through">
-                {formatCurrency(product.original_price)}
+              <p className="line-through text-red-700">
+                {formatCurrency(cartPro?.quantity || 1 >0 ? (product.original_price*(cartPro?.quantity||1)):product.original_price)}
               </p>
             </div>
           </div>
