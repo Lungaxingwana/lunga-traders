@@ -1,6 +1,6 @@
 "use client"; // Ensure this at the top
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import pic from "../../public/icons/avatar-icon.png";
 import Link from "next/link";
@@ -13,10 +13,11 @@ import { useCart } from "@/contexts/CartContext";
 export default function LoggedUser() {
   const { user } = useUser();
   const { cartCount } = useCart();
-  // State to handle innerWidth
   const [innerWidth, setInnerWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 410
   );
+  const [dropdownVisible, setDropdownVisible] = useState(false); // State to control dropdown visibility
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     function handleResize() {
@@ -26,9 +27,25 @@ export default function LoggedUser() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownVisible(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
+
   return (
     <div className="relative flex items-center align-middle space-x-2 sm:w-7/12 justify-center gap-10">
-      <div className="relative flex items-center align-middle space-x-2 group z-40">
+      <div
+        className="relative flex items-center align-middle space-x-2 group z-40"
+        onClick={() => setDropdownVisible(!dropdownVisible)} // Toggle dropdown visibility on click
+        ref={dropdownRef}
+      >
         <div className="hover:opacity-70">
           {user.email ? (
             <p className="text-[12px] font-bold text-right">
@@ -46,12 +63,17 @@ export default function LoggedUser() {
           width={innerWidth > 410 ? 40 : 40}
           height={innerWidth > 410 ? 40 : 40}
         />
-        <div className="absolute top-full right-0 font-normal bg-white p-2 hidden rounded-b-xl group-hover:block self-center justify-self-center space-y-2 sm:w-7/6">
+        <div
+          className={`absolute top-full right-0 font-normal shadow-black shadow-lg p-2 rounded-b-xl bg-white self-center justify-self-center space-y-2 ${
+            dropdownVisible ? "block" : "hidden"
+          }`}
+        >
           {user.email ? (
             <div className="space-y-2">
               <Link
                 className="flex gap-2 items-center align-middle border-b-gray-300 border rounded-3xl hover:bg-stone-500  px-3 shadow-md shadow-black font-bold"
                 href={"/profile"}
+                onClick={() => setDropdownVisible(false)} // Hide dropdown on click
               >
                 <ImProfile size={30} />
                 <p className="w-full">My Profile</p>
@@ -59,6 +81,7 @@ export default function LoggedUser() {
               <Link
                 className="flex gap-2 items-center align-middle border-b-gray-300 border rounded-3xl hover:bg-stone-500  px-3 shadow-md shadow-black font-bold"
                 href={"/logout"}
+                onClick={() => setDropdownVisible(false)} // Hide dropdown on click
               >
                 <IoLogOut size={30} />
                 <p className="w-full">Logout</p>
@@ -68,6 +91,7 @@ export default function LoggedUser() {
             <Link
               className="flex gap-2 items-center align-middle border-b-gray-300 border rounded-3xl hover:bg-stone-500  px-3 shadow-md shadow-black hover:font-bold"
               href={"/login"}
+              onClick={() => setDropdownVisible(false)} // Hide dropdown on click
             >
               <IoLogIn size={30} />
               <p className="w-full">Login</p>
