@@ -211,7 +211,7 @@ export default function ViewProduct() {
                   ))}
               </div>
             </div>
-
+ 
             <p className="mt-5">Quantity</p>
             <div className="w-full justify-evenly items-center align-middle flex ">
               <button
