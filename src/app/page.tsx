@@ -8,19 +8,18 @@ import { Toaster } from 'sonner';
 import ProductItem from "./product-item";
 import { Product } from "@/data-types/product";
 
-
 export default function Home() {
     const { setSearch, search } = useSelectedMode();
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
-    const { data: allProducts, isLoading, error } = useQuery<Product[]>({
+    const { data: allProducts, isLoading, error, refetch } = useQuery<Product[]>({
         queryKey: ["products"],
         queryFn: async () => {
             const response = await axios.get<Product[]>("/api/all-products");
             return response.data;
         },
-        retry: 3,
-        refetchOnWindowFocus: false,
+        retry: 3, // Retry failed requests up to 3 times
+        refetchOnWindowFocus: false, // Disable refetching on window focus
     });
 
     useEffect(() => {
@@ -51,7 +50,7 @@ export default function Home() {
                         {error ? (
                             <div className="text-center text-red-500">
                                 <p>Failed to load products. Please try again.</p>
-                                
+                                <button onClick={refetch} className="mt-2 p-2 bg-red-500 text-white rounded">Retry</button>
                             </div>
                         ) : (
                             allProducts?.length === 0 ? (
