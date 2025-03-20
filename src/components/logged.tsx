@@ -17,7 +17,7 @@ export default function LoggedUser() {
     typeof window !== "undefined" ? window.innerWidth : 410
   );
   const [dropdownVisible, setDropdownVisible] = useState(false); // State to control dropdown visibility
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleResize() {
@@ -28,8 +28,8 @@ export default function LoggedUser() {
   }, []);
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownVisible(false);
       }
     }
