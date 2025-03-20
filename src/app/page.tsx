@@ -13,7 +13,7 @@ export default function Home() {
     const { setSearch, search } = useSelectedMode();
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
-    const { data: allProducts, isLoading, error, refetch } = useQuery<Product[]>({
+    const { data: allProducts, isLoading, error } = useQuery<Product[]>({
         queryKey: ["products"],
         queryFn: async () => {
             const response = await axios.get<Product[]>("/api/all-products");
@@ -51,7 +51,7 @@ export default function Home() {
                         {error ? (
                             <div className="text-center text-red-500">
                                 <p>Failed to load products. Please try again.</p>
-                                <button onClick={()=>refetch} className="mt-2 p-2 bg-red-500 text-white rounded">Retry</button>
+                                
                             </div>
                         ) : (
                             allProducts?.length === 0 ? (
