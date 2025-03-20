@@ -50,7 +50,7 @@ export default function Home() {
                         {error ? (
                             <div className="text-center text-red-500">
                                 <p>Failed to load products. Please try again.</p>
-                                <button onClick={refetch} className="mt-2 p-2 bg-red-500 text-white rounded">Retry</button>
+                                <button onClick={()=>refetch} className="mt-2 p-2 bg-red-500 text-white rounded">Retry</button>
                             </div>
                         ) : (
                             allProducts?.length === 0 ? (
