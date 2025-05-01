@@ -18,7 +18,10 @@ export default function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownVisible(false);
       }
     }
@@ -29,7 +32,7 @@ export default function Navbar() {
   }, [dropdownRef]);
 
   return (
-    <nav className="flex w-full flex-row bg-[#ffffff] shadow-lg shadow-stone-400 fixed top-0 justify-between md:justify-center z-50">
+    <nav className="flex w-full flex-row backdrop-filter backdrop-grayscale backdrop-blur-sm backdrop-contrast-150 bg-[#FFFF1] shadow-lg shadow-stone-400 fixed top-0 justify-between md:justify-center z-50">
       <div
         className="group items-center align-middle w-1/2 relative"
         onClick={() => setDropdownVisible(!dropdownVisible)} // Toggle dropdown visibility on click
@@ -48,7 +51,7 @@ export default function Navbar() {
         </Link>
         <div className="flex justify-center items-center sm:w-full">
           <div
-            className={`absolute top-full font-normal bg-stone-300 shadow-black shadow-lg p-2 rounded-b-xl space-y-2 justify-center ${
+            className={`absolute top-full font-normal  shadow-black shadow-lg p-2 rounded-b-xl space-y-2 justify-center ${
               dropdownVisible ? "block" : "hidden"
             }`}
           >
@@ -66,7 +69,7 @@ export default function Navbar() {
         {user.email && (
           <div className="flex justify-center items-center sm:w-full">
             <div
-              className={`absolute top-full font-normal shadow-black shadow-lg bg-white p-2 rounded-b-xl space-y-2 justify-center sm:w-[260px] ${
+              className={`absolute top-full font-normal shadow-black shadow-lg backdrop-filter backdrop-grayscale backdrop-blur-sm backdrop-contrast-150 bg-[#FFFF1] p-2 rounded-b-xl space-y-2 justify-center sm:w-[260px] ${
                 dropdownVisible ? "block" : "hidden"
               }`}
             >

@@ -64,7 +64,7 @@ export default function LoggedUser() {
           height={innerWidth > 410 ? 40 : 40}
         />
         <div
-          className={`absolute top-full right-0 font-normal shadow-black shadow-lg p-2 rounded-b-xl bg-white self-center justify-self-center space-y-2 ${
+          className={`absolute top-full right-0 font-normal shadow-black shadow-lg p-2 rounded-b-xl backdrop-filter backdrop-grayscale backdrop-blur-sm backdrop-contrast-150 bg-[#FFFF1] self-center justify-self-center space-y-2 ${
             dropdownVisible ? "block" : "hidden"
           }`}
         >
