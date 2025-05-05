@@ -45,7 +45,7 @@ export default function Navbar() {
           <Image
             src={logo}
             alt={"logo of the business"}
-            className="w-10 h-10 "
+            className="w-10 h-10"
           />
           <p>Lunga Traders</p>
         </Link>
