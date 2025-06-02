@@ -1,185 +1,153 @@
 "use client";
+import React, { useState } from "react";
 import Image from "next/image";
-import { useState } from "react";
-import { MdVisibility, MdVisibilityOff } from "react-icons/md";
-import { ImSpinner9 } from "react-icons/im";
-import Link from "next/link";
-import { toast, Toaster } from "sonner";
-import lock from "../../../../public/icons/lock-white-icon.png";
-import { IoLogIn } from "react-icons/io5";
-import avatar from "../../../../public/icons/avatar-white-icon.png";
-import axios from "axios";
+import { MdEmail } from "react-icons/md";
+import { RiLockPasswordLine } from "react-icons/ri";
+import { HiEye, HiEyeOff } from "react-icons/hi";
+import { FiLogIn } from "react-icons/fi";
+import { FaUserPlus } from "react-icons/fa";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/contexts/UserContext";
-import { User } from "@/data-types/user";
 
-export default function Login() {
-  const [isVisible, setIsVisible] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [username, setUsername] = useState("lunga");
-  const [usernameError, setUsernameError] = useState("");
-  const [password, setPassword] = useState("1");
-  const [passwordError, setPasswordError] = useState("");
-  const { setUser } = useUser();
-
+export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    general?: string;
+  }>({});
+  const { login, isLoggingIn } = useAuthStore();
   const router = useRouter();
 
-  const validateFields = () => {
-    let isValid = true;
-
-    if (!username.trim()) {
-      setUsernameError("Username is required.");
-      isValid = false;
-    } else {
-      setUsernameError("");
-    }
-
-    if (!password.trim()) {
-      setPasswordError("Password is required.");
-      isValid = false;
-    } else {
-      setPasswordError("");
-    }
-
-    return isValid;
+  const validate = () => {
+    const newErrors: typeof errors = {};
+    if (!form.email) newErrors.email = "Email is required";
+    else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email))
+      newErrors.email = "Invalid email address";
+    if (!form.password) newErrors.password = "Password is required";
+    else if (form.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
+    return newErrors;
   };
 
-  async function handleLogin() {
-    if (validateFields()) {
-      setIsLoading(true);
-      try {
-        const response = await axios.post<User>("/api/users/login", {
-          username,
-          password,
-        });
-        setUser(response.data);
-        router.push("/");
-      } catch (error) {
-        toast.error("Failed to login", error || "");
-      } finally {
-        setIsLoading(false);
-      }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.type]: e.target.value });
+    setErrors({ ...errors, [e.target.type]: undefined, general: undefined });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length) {
+      setErrors(validationErrors);
+      return;
     }
-  }
+    setErrors({});
+    try {
+      const formData = new FormData();
+      formData.append("email", form.email);
+      formData.append("password", form.password);
+      await login({ data: formData, navigate: (path) => router.push(path) });
+    } catch {
+      setErrors({ general: "Login failed. Please try again." });
+    } 
+  };
 
   return (
-    <div className="w-full mx-auto justify-center mt-10 pt-10 align-middle flex flex-1 min-h-screen bg-stone-200">
-      <div className="justify-center items-center align-middle w-96 h-[670] bg-white border border-stone-500 rounded-xl shadow-black shadow-lg space-y-2">
-        <div className="bg-stone-500 mx-10 rounded-b-full">
-          <p className="w-full text-center">Login Screen</p>
-        </div>
-        <div className="w-full px-4">
-          <div className="w-full h-80 flex justify-center align-middle items-center mt-5 rounded-xl border border-stone-500">
-            <Image
-              alt="pic of the campany"
-              src={"/background/lunga-trader.png"}
-              width={300}
-              height={300}
-              objectFit="contain"
-            />
-          </div>
-        </div>
-        <div className="w-full  justify-center flex mt-6 p-4 align-middle items-center">
-          <div className="bg-stone-700 flex rounded-full shadow-black shadow-md w-full h-10">
-            <div className="w-2/12 h-full justify-end items-center align-middle flex p-2">
-              <Image
-                src={avatar}
-                alt={"logo of the business"}
-                className=" h-8 self-center w-8"
-              />
-            </div>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-br from-stone-400 via-stone-100 to-stone-300">
+      <span className="opacity-60 mb-4">Login</span>
+      <div className="bg-white shadow-2xl shadow-black border border-stone-300 backdrop-blur-md rounded-xl p-8 w-full max-w-md flex flex-col items-center space-y-6">
+        {/* Company Logo */}
+        <Image
+          src="/background/lunga-trader.png"
+          alt="Company Logo"
+          width={200}
+          height={200}
+          className="h-36 w-36 rounded-full shadow-lg"
+          priority
+        />
+        <form className="space-y-6 w-full" onSubmit={handleSubmit} noValidate>
+          {/* Email */}
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <MdEmail size={20} />
+            </span>
             <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="outline-none p-3 text-white w-9/12 bg-transparent"
-              placeholder="Enter username here"
+              type="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              className={`w-full pl-10 pr-4 py-2 rounded-lg bg-white/80 focus:bg-white outline-none shadow-lg shadow-black/40 ${
+                errors.email ? "border border-red-400" : ""
+              }`}
+              required
+              autoComplete="email"
             />
+            {errors.email && (
+              <span className="text-xs text-red-500 text-center w-full left-0 bottom-[-20px] mt-1 absolute">
+                {errors.email}
+              </span>
+            )}
           </div>
-          <p className="text-red-600 fixed text-center w-full mt-[60]">
-            {usernameError}
-          </p>
-        </div>
-        <div className="w-full justify-center flex px-4 align-middle items-center">
-          <div className="bg-stone-700 flex rounded-full shadow-black shadow-md w-full h-10">
-            <div className="w-2/12 h-full justify-end items-center align-middle flex p-2">
-              <Image
-                src={lock}
-                alt={"logo of the business"}
-                className=" h-8 self-center w-8"
-              />
-            </div>
+          {/* Password */}
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <RiLockPasswordLine size={20} />
+            </span>
             <input
-              value={!password ? "" : password}
-              type={`${isVisible ? "password" : ""}`}
-              className="outline-none  p-3 text-white w-9/12 bg-transparent"
-              placeholder="Enter password here"
-              onChange={(e) => setPassword(e.target.value)}
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              className={`w-full pl-10 pr-10 py-2 rounded-lg bg-white/80 focus:bg-white outline-none shadow-lg shadow-black/40 ${
+                errors.password ? "border border-red-400" : ""
+              }`}
+              required
+              autoComplete="current-password"
             />
-            <div className="w-2/12 h-full justify-end items-center align-middle flex p-3">
-              <button onClick={() => setIsVisible(!isVisible)}>
-                {isVisible ? (
-                  <MdVisibilityOff size={25} color="white" />
-                ) : (
-                  <MdVisibility size={25} color="white" />
-                )}
-              </button>
-            </div>
+            <span
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              onClick={() => setShowPassword((v) => !v)}
+              tabIndex={0}
+              role="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <HiEye size={22} /> : <HiEyeOff size={22} />}
+            </span>
+            {errors.password && (
+              <span className="text-xs text-red-500 text-center w-full left-0 bottom-[-20px] mt-1 absolute">
+                {errors.password}
+              </span>
+            )}
           </div>
-          <p className="text-red-600 fixed text-center w-full mt-[60]">
-            {passwordError}
-          </p>
-        </div>
-
-        <div className="w-full justify-evenly items-center align-middle flex">
-          <div className="flex justify-evenly w-full items-center align-middle">
-            <div className="w-1/2 mx-auto justify-center flex mt-6 p-4">
-              <Link
-                href={"/forgot-password"}
-                className=" p-2 hover:underline active:opacity-40"
-              >
-                Forgot Password
-              </Link>
+          {/* General Error */}
+          {errors.general && (
+            <div className="text-center text-sm text-red-500">
+              {errors.general}
             </div>
-            <div className="w-1/2 mx-auto justify-center flex mt-6 p-2">
-              <Toaster richColors position="top-center" />
-              <button
-                onClick={handleLogin}
-                className="p-2 hover:bg-stone-400 font-bold bg-gradient-to-r from-stone-700 via-stone-500 to-stone-700 shadow-xl shadow-black active:opacity-40 w-full justify-center items-center align-middle rounded-full flex"
-              >
-                {isLoading ? (
-                  <div className="flex gap-3" color="white">
-                    <ImSpinner9
-                      size={23}
-                      className="animate-spin"
-                      color="white"
-                    />
-                    <p className="text-white">Loggin In...</p>
-                  </div>
-                ) : (
-                  <div className="gap-x-2 flex justify-center align-middle items-center">
-                    <IoLogIn size={27} color="white"/>
-                    <p className="text-white">Login</p>
-                  </div>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="w-full justify-evenly items-center align-middle flex">
-          <div className="flex justify-evenly w-full items-center align-middle">
-            <div className="w-full mx-auto justify-center flex  p-4">
-              <p className=" p-2">
-                Dont have an <span className="font-bold">account</span>?{" "}
-                <Link
-                  href={"/create-account"}
-                  className="text-blue-900 hover:underline active:opacity-40"
-                >
-                  Create one here
-                </Link>
-              </p>
-            </div>
-          </div>
-        </div>
+          )}
+          {/* Login Button */}
+          <button
+            type="submit"
+            disabled={isLoggingIn}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-stone-700 via-stone-500 to-stone-700 hover:opacity-80 active:opacity-60 shadow-black shadow-lg transition disabled:opacity-50"
+          >
+            <FiLogIn size={20} />
+            {isLoggingIn ? "Loggin in..." : "Login"}
+          </button>
+        </form>
+      </div>
+      {/* Signup Link */}
+      <div className="mt-4 text-center">
+        <span className="opacity-60">Don&#39;t have an account?</span>
+        <a
+          href="/signup"
+          className=" text-stone-600 font-bold hover:underline flex items-center justify-center gap-1"
+        >
+          <FaUserPlus size={18} />
+          Sign up
+        </a>
       </div>
     </div>
   );
