@@ -7,7 +7,7 @@ import { Socket } from "socket.io-client";
 import { useProductStore } from "./useProductStore";
 import { Product } from "@/data-types/product.type";
 
-const BASE_URL = process.env.NODE_ENV === "development" ? "http://localhost:5002" : "/";
+const BASE_URL = process.env.NODE_ENV === "development" ? "http://localhost:5002" : "https://lunga-traders.vercel.app";
 
 interface AuthStore {
   authUser: User | null;
