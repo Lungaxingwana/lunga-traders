@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from "react";
 import Image from "next/image";
 import { MdEmail } from "react-icons/md";
@@ -6,10 +5,8 @@ import { RiLockPasswordLine } from "react-icons/ri";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import { FiLogIn } from "react-icons/fi";
 import { FaUserPlus } from "react-icons/fa";
-import { useAuthStore } from "@/stores/useAuthStore";
-import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<{
@@ -17,8 +14,7 @@ export default function LoginPage() {
     password?: string;
     general?: string;
   }>({});
-  const { login, isLoggingIn } = useAuthStore();
-  const router = useRouter();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const validate = () => {
     const newErrors: typeof errors = {};
@@ -44,14 +40,21 @@ export default function LoginPage() {
       return;
     }
     setErrors({});
+    setIsLoggingIn(true);
     try {
-      const formData = new FormData();
-      formData.append("email", form.email);
-      formData.append("password", form.password);
-      await login({ data: formData, navigate: (path) => router.push(path) });
+      // Replace this with your API call logic
+      // Example:
+      // const response = await fetch("/api/auth/login", { ... });
+      // if (!response.ok) throw new Error();
+      // await response.json();
+      setTimeout(() => {
+        setIsLoggingIn(false);
+        // window.location.href = "/"; // or use react-router-dom's useNavigate
+      }, 1000);
     } catch {
       setErrors({ general: "Login failed. Please try again." });
-    } 
+      setIsLoggingIn(false);
+    }
   };
 
   return (

@@ -2,10 +2,10 @@ import { create } from "zustand";
 import { axiosInstance } from "../libs/axios";
 import toast from "react-hot-toast";
 import io from "socket.io-client";
-import { User } from "../data-types/user.type";
+import type { User } from "../data-types/user.type";
 import { Socket } from "socket.io-client";
 import { useProductStore } from "./useProductStore";
-import { Product } from "@/data-types/product.type";
+import type { Product } from "../data-types/product.type";
 
 const BASE_URL = process.env.NODE_ENV === "development" ? "http://localhost:5002" : "/";
 

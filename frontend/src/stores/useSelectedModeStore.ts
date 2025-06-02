@@ -1,5 +1,6 @@
-import { Product } from "@/data-types/product.type";
+
 import { create } from "zustand";
+import type { Product } from "../data-types/product.type";
 
 
 interface SelectedModeState {

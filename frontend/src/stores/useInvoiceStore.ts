@@ -1,7 +1,8 @@
-import { Invoice } from "@/data-types/invoice.type";
-import { axiosInstance } from "@/libs/axios";
+
 import toast from "react-hot-toast";
 import { create } from "zustand";
+import type { Invoice } from "../data-types/invoice.type";
+import { axiosInstance } from "../libs/axios";
 
 
 interface InvoiceState {

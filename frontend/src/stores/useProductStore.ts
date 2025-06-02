@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { Product } from "../data-types/product.type";
 import { axiosInstance } from "../libs/axios";
 import toast from "react-hot-toast";
+import type { Product } from "../data-types/product.type";
 
 interface ProductStore {
     isCreatingProduct: boolean;
