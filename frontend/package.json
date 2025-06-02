@@ -1,5 +1,5 @@
 {
-  "name": "lunga-traders-new",
+  "name": "frontend",
   "version": "0.1.0",
   "private": true,
   "main": "backend/src/index.js",
