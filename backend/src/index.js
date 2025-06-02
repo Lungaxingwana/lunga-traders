@@ -22,6 +22,25 @@ if (!fs.existsSync(distPath)) {
   fs.mkdirSync(distPath, { recursive: true });
 }
 
+// Auto-create index.html in dist if it doesn't exist
+const indexHtmlPath = path.join(distPath, "index.html");
+if (!fs.existsSync(indexHtmlPath)) {
+  fs.writeFileSync(
+    indexHtmlPath,
+    `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome</title>
+</head>
+<body>
+  <h1>It works!</h1>
+  <p>This is a placeholder index.html file.</p>
+</body>
+</html>`
+  );
+}
+
 app.use(cors({
     origin: ["http://localhost:3000"],
     credentials: true,
