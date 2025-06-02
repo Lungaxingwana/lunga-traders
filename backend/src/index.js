@@ -10,10 +10,17 @@ import cookieParser from 'cookie-parser';
 import { app, server } from './libs/socket.js';
 import { connectAndRun } from './libs/db.js';
 import path from "path";
+import fs from "fs"; // Add this import
 dotenv.config();
 
 const PORT = process.env.PORT;
 const __dirname = path.resolve();
+
+// Auto-create dist folder if it doesn't exist
+const distPath = path.join(__dirname, "../frontend/dist");
+if (!fs.existsSync(distPath)) {
+  fs.mkdirSync(distPath, { recursive: true });
+}
 
 app.use(cors({
     origin: ["http://localhost:3000"],
@@ -30,10 +37,10 @@ app.use("/api/invoices", invoiceRoutes);
 app.use(morgan('dev'));
 
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  app.use(express.static(distPath));
 
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+    res.sendFile(path.join(distPath, "index.html"));
   });
 }
 
