@@ -2,16 +2,18 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 
+// Do not use app.listen() in your main index.js if you want to use socket.io server.
+// Only start the server here:
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [process.env.FRONTEND_URL, "http://localhost:3000",'http://localhost:5173','https://lunga-chat.onrender.com'], // Allow frontend origins
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-
+    origin: ["https://lunga-traders.vercel.app"],
+    methods: ["GET", "POST"],
+    credentials: true
   },
+  path: "/socket.io"
 });
 
 export function getReceiverSocketId(userId) {
@@ -25,17 +27,12 @@ io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
   const userId = socket.handshake.query.userId;
-  if (!userId) {
-    console.error("Connection failed: User ID is undefined.");
-    socket.disconnect();
-    return;
-  }
-
-  userSocketMap[userId] = socket.id;
+  if (userId) userSocketMap[userId] = socket.id;
 
   // io.emit() is used to send events to all the connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
+  
+  
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.id);
     delete userSocketMap[userId];

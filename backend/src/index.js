@@ -1,33 +1,33 @@
-import express from "express";
-import dotenv from "dotenv";
-import cookieParser from "cookie-parser";
-import cors from "cors";
-
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import morgan from 'morgan';
+import imagesRoutes from "./routes/image.route.js";
+import userRoutes from "./routes/users.route.js";
+import productRoutes from "./routes/products.route.js";
+import invoiceRoutes from "./routes/invoice.route.js";
+import cookieParser from 'cookie-parser';
+import { app, server } from './libs/socket.js';
+import { connectAndRun } from './libs/db.js';
 import path from "path";
-
-import { connectDB } from "./lib/db.js";
-
-import authRoutes from "./routes/auth.route.js";
-import messageRoutes from "./routes/message.route.js";
-import { app, server } from "./lib/socket.js";
-
 dotenv.config();
 
 const PORT = process.env.PORT;
 const __dirname = path.resolve();
 
-app.use(express.json({ limit: "20mb" }));
-app.use(express.urlencoded({ limit: "20mb", extended: true }));
-app.use(cookieParser());
 app.use(cors({
-  origin: ["http://localhost:3000",'http://localhost:5173','https://lunga-chat.onrender.com'],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
+    origin: ["https://lunga-traders.vercel.app"],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
+app.use(express.json({ limit: "20mb" }));
+app.use(cookieParser());
 
-
-app.use("/api/auth", authRoutes);
-app.use("/api/messages", messageRoutes);
+app.use("/api/images", imagesRoutes);
+app.use("/api/auth", userRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/invoices", invoiceRoutes);
+app.use(morgan('dev'));
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
@@ -37,7 +37,8 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+// Start server and connect to DB
 server.listen(PORT, () => {
-  console.log("server is running on PORT:" + PORT);
-  connectDB();
+    console.log(`Server is running on port ${PORT}`);
+    connectAndRun();
 });
