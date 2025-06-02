@@ -16,7 +16,7 @@ const PORT = process.env.PORT;
 const __dirname = path.resolve();
 
 app.use(cors({
-    origin: ["https://lunga-traders.vercel.app"],
+    origin: ["http://localhost:3000"],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
