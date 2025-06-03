@@ -1,7 +1,7 @@
 import { create } from "zustand";
+import type { Product } from "../data-types/product.type";
 import { axiosInstance } from "../libs/axios";
 import toast from "react-hot-toast";
-import type { Product } from "../data-types/product.type";
 
 interface ProductStore {
     isCreatingProduct: boolean;
@@ -12,7 +12,7 @@ interface ProductStore {
 
     getProductImages: (product_id: string, ids: string[]) => Promise<void>;
     createProduct: (data: FormData) => Promise<Product | null>;
-    updateProduct: (_id:string,form: FormData) => Promise<void>;
+    updateProduct: (_id:string,form: FormData) => Promise<boolean>;
     deleteProduct: (productId: string) => Promise<void>;
     fetchProducts: () => Promise<void>;
     fetchProduct: (productId: string, setSelectedProduct: (product: Product) => void) => Promise<void>;
@@ -54,9 +54,11 @@ export const useProductStore = create<ProductStore>((set) => ({
             if (res.status >= 200 && res.status < 300) {
                 toast.success("Product updated successfully");
             }
+            return true;
         } catch (error) {
             console.error("Error updating product:", error);
             toast.error("Failed to update product");
+            return false;
         } finally {
             set({ isUpdatingProduct: false });
         }

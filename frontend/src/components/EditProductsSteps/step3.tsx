@@ -2,13 +2,11 @@ import { motion } from "framer-motion";
 import { useProductStore } from "../../stores/useProductStore";
 import { useState } from "react";
 import { useSelectedModeStore } from "../../stores/useSelectedModeStore";
-import { useRouter } from "next/navigation";
 
 export default function Step3Product() {
   const { selectedProduct } = useSelectedModeStore();
   const { updateProduct } = useProductStore();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const router = useRouter();
 
   if (!selectedProduct) return null;
 
@@ -65,7 +63,7 @@ export default function Step3Product() {
         });
       }
       await updateProduct(selectedProduct._id, form);
-      router.back();
+      
     }
   };
 

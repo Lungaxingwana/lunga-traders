@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState, useCallback } from "react";
-import { ProductInput } from "../../data-types/product.type";
+import type { ProductInput } from "../../data-types/product.type";
 
 interface Step3ProductProps {
   product: ProductInput;

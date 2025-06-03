@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import { ProductInput } from '../../data-types/product.type';
+import { type ProductInput } from '../../data-types/product.type';
 import { FaTrash } from "react-icons/fa";
 import { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
 import Select from "react-select";
 
 interface Step2ProductProps {
@@ -280,14 +279,11 @@ export default function Step2Product({ product, setProduct, setValidate }: Step2
         <div className="mt-4 flex flex-wrap gap-4">
           {product.appearance.images_src?.map((imgAsset, imgIndex: number) => (
             <div key={imgIndex} className="relative w-28 h-28">
-              <Image
+              <img
                 src={typeof imgAsset === "string" ? imgAsset : URL.createObjectURL(imgAsset)}
                 alt={typeof imgAsset === "string" ? `Uploaded ${imgIndex + 1}` : imgAsset.name || `Uploaded ${imgIndex + 1}`}
                 className="w-full h-full object-cover rounded-md shadow-lg shadow-black"
-                fill
-                sizes="112px"
                 style={{ objectFit: "cover" }}
-                unoptimized={typeof imgAsset !== "string"}
               />
               <button
                 type="button"

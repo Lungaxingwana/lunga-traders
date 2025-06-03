@@ -1,6 +1,7 @@
 export interface Product {
     _id: string;
     general: {
+        user_id?: string;
         make: string;
         model: string;
         year: number;
@@ -32,6 +33,7 @@ export interface Product {
 
 export interface ProductInput {
     general: {
+        user_id?: string;
         make: string;
         model: string;
         year: number;

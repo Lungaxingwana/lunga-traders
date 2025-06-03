@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ProductInput, Category } from "../../data-types/product.type";
+import { Category, type ProductInput } from "../../data-types/product.type";
 import { Select, MenuItem } from "@mui/material";
 import { useState, useEffect, useCallback } from "react";
 

@@ -2,12 +2,12 @@ import { create } from "zustand";
 import { axiosInstance } from "../libs/axios";
 import toast from "react-hot-toast";
 import io from "socket.io-client";
-import type { User } from "../data-types/user.type";
 import { Socket } from "socket.io-client";
 import { useProductStore } from "./useProductStore";
+import type { User } from "../data-types/user.type";
 import type { Product } from "../data-types/product.type";
 
-const BASE_URL = process.env.NODE_ENV === "development" ? "http://localhost:5002" : "/";
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5002" : "/";
 
 interface AuthStore {
   authUser: User | null;
@@ -122,7 +122,7 @@ export const useAuthStore = create<AuthStore>((set, get) => {
       set({ isSigningUp: true });
       try {
         const res = await fetch(
-          (process.env.NODE_ENV === "development" ? "http://localhost:5002/api" : "/api") + `/auth/signup`,
+          (import.meta.env.MODE === "development" ? "http://localhost:5002/api" : "/api") + `/auth/signup`,
           {
             method: "POST",
             credentials: "include",
@@ -177,7 +177,7 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     updateProfile: async (form: FormData) => {
       set({ isUpdatingProfile: true });
       try {
-        const res = await fetch((process.env.NODE_ENV === "development" ? "http://localhost:5002/api" : "/api") + `/auth/update-profile/${get().authUser?._id}`, {
+        const res = await fetch((import.meta.env.MODE === "development" ? "http://localhost:5002/api" : "/api") + `/auth/update-profile/${get().authUser?._id}`, {
           method: "PUT",
           credentials: "include",
           body: form,

@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
-import Image from "next/image";
 import Select from "react-select";
 import { useSelectedModeStore } from "../../stores/useSelectedModeStore";
 import { useProductStore } from "../../stores/useProductStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback, useMemo } from "react";
+import type { Product } from "../../data-types/product.type";
 
 const sizeOptions: { [key: string]: string[] } = {
   "Mobile Phones": [
@@ -60,28 +60,47 @@ export default function Step2Product() {
       : null;
   const selectedProduct = useProductStore
     .getState()
-    .allProducts?.find((p) => p._id === selectedProductId);
+    .allProducts?.find((p: Product) => p._id === selectedProductId);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const fetchedImagesRef = useRef(false);
 
+  
+
+  // Always define appearance and imagesSrc, even if selectedProduct is undefined
+  const appearance = useMemo(
+    () =>
+      selectedProduct?.appearance ?? {
+        color: "",
+        size: "",
+        images_src: [],
+      },
+    [selectedProduct]
+  );
+  const imagesSrc: File[] = useMemo(
+    () =>
+      Array.isArray(appearance.images_src)
+        ? appearance.images_src
+        : [],
+    [appearance.images_src]
+  );
+
   useEffect(() => {
-    // Only fetch images if they do not exist and haven't been fetched yet
+    // Only fetch images if selectedProduct exists and images need to be fetched
     if (
       selectedProduct &&
       !fetchedImagesRef.current &&
-      (!selectedProduct.appearance.images_src ||
-        selectedProduct.appearance.images_src.length === 0) &&
-      selectedProduct.appearance.images_src_id &&
-      selectedProduct.appearance.images_src_id.length > 0
+      (!appearance.images_src || appearance.images_src.length === 0) &&
+      appearance.images_src_id &&
+      appearance.images_src_id.length > 0
     ) {
       fetchedImagesRef.current = true;
       const fetchImages = async () => {
         const images: File[] = [];
-        for (const id of selectedProduct.appearance.images_src_id ?? []) {
+        for (const id of appearance.images_src_id ?? []) {
           try {
             const res = await fetch(
-              (process.env.NODE_ENV === "development"
+              (import.meta.env.MODE === "development"
                 ? "http://localhost:5002/api"
                 : "/api") + `/images/get-image/${id}`,
               {
@@ -98,32 +117,20 @@ export default function Step2Product() {
             // Optionally handle error or push a placeholder image
           }
         }
-        // Always store fetched images as Files in selectedProduct.appearance.images_src
         useSelectedModeStore.setState({
           selectedProduct: {
             ...selectedProduct,
             _id: selectedProduct._id ?? "",
-            general: selectedProduct.general
-              ? { ...selectedProduct.general }
-              : {
-                  make: "",
-                  model: "",
-                  year: 0,
-                  category: "",
-                  sub_category: "",
-                  tags: "",
-                  description: "",
-                },
             appearance: {
-              ...selectedProduct.appearance,
-              color: selectedProduct.appearance.color !== undefined ? selectedProduct.appearance.color : "",
-              size: selectedProduct.appearance.size !== undefined ? selectedProduct.appearance.size : "",
+              ...appearance,
+              color: appearance.color !== undefined ? appearance.color : "",
+              size: appearance.size !== undefined ? appearance.size : "",
               images_src: images,
             },
           },
         });
         useProductStore.setState({
-          allProducts: (useProductStore.getState().allProducts ?? []).map((p) =>
+          allProducts: (useProductStore.getState().allProducts ?? []).map((p: Product) =>
             p._id === selectedProduct._id
               ? {
                   ...p,
@@ -140,7 +147,36 @@ export default function Step2Product() {
       };
       fetchImages();
     }
-  }, [selectedProduct]);
+  }, [selectedProduct, appearance, useSelectedModeStore, useProductStore]);
+
+  // Defensive: fallback if selectedProduct is undefined
+  // Move hooks above any early returns to avoid conditional hook calls
+  const removeImage = useCallback((imageIndex: number) => {
+    if (!selectedProduct) return;
+    const newImages = imagesSrc.filter((_img, idx) => idx !== imageIndex);
+    useSelectedModeStore.setState({
+      selectedProduct: {
+        ...selectedProduct,
+        appearance: {
+          ...appearance,
+          images_src: newImages,
+        },
+      },
+    });
+    useProductStore.setState({
+      allProducts: (useProductStore.getState().allProducts ?? []).map((p: Product) =>
+        p._id === selectedProduct._id
+          ? {
+              ...p,
+              appearance: {
+                ...p.appearance,
+                images_src: newImages,
+              },
+            }
+          : p
+      ),
+    });
+  }, [selectedProduct, imagesSrc, appearance]);
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
@@ -170,77 +206,37 @@ export default function Step2Product() {
     if (e.target.files) {
       const filesArray: File[] = Array.from(e.target.files);
 
-      if (
-        ((selectedProduct?.appearance.images_src || []).length +
-          filesArray.length) >
-        10
-      ) {
+      if ((imagesSrc.length + filesArray.length) > 10) {
         alert("You can only select up to 10 images.");
         return;
       }
 
-      // Always store all selected images as Files in selectedProduct.appearance.images_src
-      if (filesArray.length > 0 && selectedProduct) {
-        useSelectedModeStore.setState({
-          selectedProduct: {
-            ...selectedProduct,
-            appearance: {
-              ...selectedProduct.appearance,
-              images_src: [
-                ...(selectedProduct.appearance.images_src || []),
-                ...filesArray,
-              ],
-            },
-          },
-        });
-        useProductStore.setState({
-          allProducts: (useProductStore.getState().allProducts ?? []).map((p) =>
-            p._id === selectedProduct._id
-              ? {
-                  ...p,
-                  appearance: {
-                    ...p.appearance,
-                    images_src: [
-                      ...(selectedProduct.appearance.images_src || []),
-                      ...filesArray,
-                    ],
-                  },
-                }
-              : p
-          ),
-        });
-      }
-    }
-  };
+      if (!selectedProduct) return;
 
-  const removeImage = (imageIndex: number) => {
-    if (!selectedProduct) return;
-    const newImages =
-      (selectedProduct.appearance.images_src || []).filter(
-        (_img, idx) => idx !== imageIndex
-      );
-    useSelectedModeStore.setState({
-      selectedProduct: {
-        ...selectedProduct,
-        appearance: {
-          ...selectedProduct.appearance,
-          images_src: newImages,
+      const newImages = [...imagesSrc, ...filesArray];
+      useSelectedModeStore.setState({
+        selectedProduct: {
+          ...selectedProduct,
+          appearance: {
+            ...appearance,
+            images_src: newImages,
+          },
         },
-      },
-    });
-    useProductStore.setState({
-      allProducts: (useProductStore.getState().allProducts ?? []).map((p) =>
-        p._id === selectedProduct._id
-          ? {
-              ...p,
-              appearance: {
-                ...p.appearance,
-                images_src: newImages,
-              },
-            }
-          : p
-      ),
-    });
+      });
+      useProductStore.setState({
+        allProducts: (useProductStore.getState().allProducts ?? []).map((p: Product) =>
+          p._id === selectedProduct._id
+            ? {
+                ...p,
+                appearance: {
+                  ...p.appearance,
+                  images_src: newImages,
+                },
+              }
+            : p
+        ),
+      });
+    }
   };
 
   const handleOtherSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -255,16 +251,16 @@ export default function Step2Product() {
       },
     });
     useProductStore.setState({
-      allProducts: (useProductStore.getState().allProducts ?? []).map((p) =>
-        p._id === selectedProduct._id
-          ? {
-              ...p,
-              appearance: {
-                ...p.appearance,
-                other_size: e.target.value,
-              },
-            }
-          : p
+      allProducts: (useProductStore.getState().allProducts ?? []).map((p: Product) =>
+      p._id === selectedProduct._id
+        ? {
+          ...p,
+          appearance: {
+          ...p.appearance,
+          other_size: e.target.value,
+          },
+        }
+        : p
       ),
     });
   };
@@ -281,6 +277,15 @@ export default function Step2Product() {
       // Submit logic here
     }
   };
+
+  // Defensive: fallback if selectedProduct is undefined
+  if (!selectedProduct) {
+    return (
+      <div className="p-4 text-center text-red-500">
+        No product selected. Please select a product to edit.
+      </div>
+    );
+  }
 
   return (
     <motion.form
@@ -356,7 +361,7 @@ export default function Step2Product() {
               },
             });
             useProductStore.setState({
-              allProducts: (useProductStore.getState().allProducts ?? []).map((p) =>
+              allProducts: (useProductStore.getState().allProducts ?? []).map((p: Product) =>
                 p._id === selectedProduct._id
                   ? {
                       ...p,
@@ -415,29 +420,27 @@ export default function Step2Product() {
           onChange={handleImageChange}
         />
         <div className="mt-4 flex flex-wrap gap-4">
-          {selectedProduct?.appearance.images_src?.map(
-            (imgAsset: File, imgIndex: number) => {
-              const src = URL.createObjectURL(imgAsset);
-              return (
-                <div key={imgIndex} className="relative w-28 h-28">
-                  <Image
-                    src={src}
-                    alt={imgAsset.name || `Uploaded ${imgIndex + 1}`}
-                    className="w-full h-full object-cover rounded-md shadow-lg shadow-black"
-                    width={112}
-                    height={112}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(imgIndex)}
-                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-                  >
-                    <FaTrash size={12} />
-                  </button>
-                </div>
-              );
-            }
-          )}
+          {imagesSrc.map((imgAsset: File, imgIndex: number) => {
+            const src = URL.createObjectURL(imgAsset);
+            return (
+              <div key={imgIndex} className="relative w-28 h-28">
+                <img
+                  src={src}
+                  alt={imgAsset.name || `Uploaded ${imgIndex + 1}`}
+                  className="w-full h-full object-cover rounded-md shadow-lg shadow-black"
+                  width={112}
+                  height={112}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(imgIndex)}
+                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                >
+                  <FaTrash size={12} />
+                </button>
+              </div>
+            );
+          })}
         </div>
         {errors.images_src && (
           <p className="text-red-500 text-xs">{errors.images_src}</p>
