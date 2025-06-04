@@ -157,7 +157,7 @@ export default function Navbar({ pathname }: NavBarProps) {
                 <FaHome size={24} />
                 <p className=" text-sm">Home</p>
               </button>
-              <button
+              {/* <button
                 type="button"
                 onClick={() => {
                   setShowPopup(false);
@@ -167,7 +167,7 @@ export default function Navbar({ pathname }: NavBarProps) {
               >
                 <FaCloudDownloadAlt size={24} />
                 <p className=" text-sm">Download APK</p>
-              </button>
+              </button> */}
               {authUser && <button
                 type="button"
                 onClick={() => {
