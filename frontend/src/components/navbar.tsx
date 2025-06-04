@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { FaCloudDownloadAlt, FaUserCircle, FaSignOutAlt, FaHome } from "react-icons/fa";
+import { FaUserCircle, FaSignOutAlt, FaHome } from "react-icons/fa";
 import { useNavigate, type Location } from "react-router-dom";
 import { useInvoiceStore } from "../stores/useInvoiceStore";
 import type { Invoice } from "../data-types/invoice.type";
