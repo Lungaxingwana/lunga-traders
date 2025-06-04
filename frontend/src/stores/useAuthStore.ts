@@ -177,17 +177,25 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     updateProfile: async (form: FormData) => {
       set({ isUpdatingProfile: true });
       try {
-        const res = await fetch((import.meta.env.MODE === "development" ? "http://localhost:5002/api" : "/api") + `/auth/update-profile/${get().authUser?._id}`, {
-          method: "PUT",
-          credentials: "include",
-          body: form,
-        });
-        const data = await res.json();
-        console.log(data);
-        console.log("Profile updated!");
-        return res.ok;
+        const res = await fetch(
+          (import.meta.env.MODE === "development" ? "http://localhost:5002/api" : "/api") +
+            `/auth/update-profile/${get().authUser?._id}`,
+          {
+            method: "PUT",
+            credentials: "include",
+            body: form,
+          }
+        );
+        if (res.ok) {
+          set({ authUser: await res.json() });
+          toast.success("Profile updated successfully");
+          return true;
+        } else {
+          toast.error("Profile update failed!");
+          return false;
+        }
       } catch (error) {
-        console.log("Profile update failed!");
+        toast.error("Profile update failed!");
         console.error(error);
         return false;
       } finally {

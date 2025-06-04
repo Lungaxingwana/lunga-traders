@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import pic from "/icons/avatar-icon.png";
 import { MdEmail, MdWork } from "react-icons/md";
 import { RiLockPasswordLine } from "react-icons/ri";
@@ -9,6 +9,37 @@ import Slider from "@mui/material/Slider";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useSelectedModeStore } from "../../stores/useSelectedModeStore";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
+// Helper to crop the image using pixel area from react-easy-crop
+function getCroppedImg(
+  imageSrc: string,
+  croppedAreaPixels: { width: number; height: number; x: number; y: number }
+): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const image = new window.Image();
+    image.src = imageSrc;
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      const size = 256;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(
+        image,
+        croppedAreaPixels.x,
+        croppedAreaPixels.y,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height,
+        0,
+        0,
+        size,
+        size
+      );
+      canvas.toBlob((blob) => resolve(blob), "image/png");
+    };
+  });
+}
 
 type FormState = {
   email: string;
@@ -24,8 +55,6 @@ type FormState = {
 };
 
 export default function ProfilePage() {
-  // Replace with your own React state/store logic as needed
-  const [isUpdatingProfile] = useState(false);
   const [form, setForm] = useState<FormState>({
     email: useAuthStore.getState().authUser?.email || "",
     password: useAuthStore.getState().authUser?.password || "",
@@ -36,16 +65,17 @@ export default function ProfilePage() {
     address: useAuthStore.getState().authUser?.person?.address || "",
     cell_number: useAuthStore.getState().authUser?.person?.cell_number || "",
     profile_image_id: useAuthStore.getState().authUser?.person?.profile_image_id || "",
-    profile_picture: useAuthStore.getState().authUser?.person?.profile_picture || undefined,
+    profile_picture: useSelectedModeStore.getState().profile_picture || undefined,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
-  // Remove Next.js router
-  // const router = useRouter();
+  const { updateProfile, isUpdatingProfile } = useAuthStore();
+  const navigate = useNavigate();
 
   // Image upload/resizing state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showResize, setShowResize] = useState(false);
+  const [rawImage, setRawImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -62,30 +92,46 @@ export default function ProfilePage() {
   const [adminPassword, setAdminPassword] = useState("");
   const lstAdmin = ["Lunga-18DNP", "Nolwazi-14", "Winston-29DNP"];
 
-  // Profile picture state from store or fallback
-  const [profilePicture] = useState<string>(() => {
-    const zustandPic = useSelectedModeStore.getState().profile_picture;
-    if (zustandPic) return URL.createObjectURL(zustandPic as File);
-    return typeof pic === "string" ? pic : (pic as { src: string }).src;
-  });
 
+
+  // Sync form with authUser
   const authUser = useAuthStore.getState().authUser;
-  useEffect(() => {
+  const profilePictureFromStore = useSelectedModeStore.getState().profile_picture;
+  React.useEffect(() => {
     if (!authUser) return;
-    setForm({
-      email: authUser?.email || "",
-      password: authUser?.password || "",
-      role: authUser?.role || "Customer",
-      first_name: authUser?.person?.first_name || "",
-      last_name: authUser?.person?.last_name || "",
-      gender: authUser?.person?.gender || "Male",
-      address: authUser?.person?.address || "",
-      cell_number: authUser?.person?.cell_number || "",
-      profile_image_id: authUser?.person?.profile_image_id || "",
-      profile_picture: undefined,
-    });
-  }, [authUser]);
+    // If profile_picture is a string (URL), fetch and convert to File
+    async function fetchProfileImageAsFile(url: string): Promise<File | undefined> {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return new File([blob], "profile_image.png", { type: blob.type });
+      } catch {
+        return undefined;
+      }
+    }
+    (async () => {
+      let profile_picture: File | undefined = undefined;
+      if (profilePictureFromStore && typeof profilePictureFromStore === "string") {
+        profile_picture = await fetchProfileImageAsFile(profilePictureFromStore);
+      } else if (profilePictureFromStore) {
+        profile_picture = profilePictureFromStore;
+      }
+      setForm({
+        email: authUser?.email || "",
+        password: authUser?.password || "",
+        role: authUser?.role || "Customer",
+        first_name: authUser?.person?.first_name || "",
+        last_name: authUser?.person?.last_name || "",
+        gender: authUser?.person?.gender || "Male",
+        address: authUser?.person?.address || "",
+        cell_number: authUser?.person?.cell_number || "",
+        profile_image_id: authUser?.person?.profile_image_id || "",
+        profile_picture: profile_picture,
+      });
+    })();
+  }, [profilePictureFromStore]);
 
+  // Handle file selection
   const handleProfilePicClick = () => {
     fileInputRef.current?.click();
   };
@@ -93,6 +139,7 @@ export default function ProfilePage() {
   const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
+      setRawImage(file);
       setShowResize(true);
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -101,29 +148,34 @@ export default function ProfilePage() {
       reader.readAsDataURL(file);
     }
   };
+
   const handleResizeConfirm = async () => {
     if (!previewUrl || !croppedAreaPixels) return;
-    // Implement your cropping logic here
-    setShowResize(false);
+    const blob = await getCroppedImg(previewUrl, croppedAreaPixels);
+    if (blob) {
+      const resizedFile = new File([blob], rawImage?.name || "profile.png", { type: "image/png" });
+      setForm((f) => ({ ...f, profile_picture: resizedFile }));
+      setPreviewUrl(URL.createObjectURL(resizedFile));
+      // Display the cropped image immediately
+      setRawImage(null);
+      setShowResize(false);
+    } else {
+      setShowResize(false);
+    }
     setZoom(1);
   };
 
   const handleResizeCancel = () => {
     setShowResize(false);
+    setRawImage(null);
     setPreviewUrl(form.profile_picture ? URL.createObjectURL(form.profile_picture) : null);
     setZoom(1);
   };
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement | HTMLSelectElement;
     const { name, value } = target;
-    if (
-      name === "profile_picture" &&
-      target instanceof HTMLInputElement &&
-      target.files &&
-      target.files[0]
-    ) {
+    if (name === "profile_picture" && target instanceof HTMLInputElement && target.files && target.files[0]) {
       // handled by custom logic
     } else {
       setForm((f) => ({ ...f, [name]: value }));
@@ -138,8 +190,7 @@ export default function ProfilePage() {
   const validate = () => {
     const newErrors: { [k: string]: string } = {};
     if (!form.email) newErrors.email = "Email is required";
-    else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email))
-      newErrors.email = "Invalid email";
+    else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email)) newErrors.email = "Invalid email";
     if (!form.password) newErrors.password = "Password is required";
     else if (form.password.length < 6) newErrors.password = "Min 6 characters";
     if (!form.role) newErrors.role = "Role is required";
@@ -158,10 +209,33 @@ export default function ProfilePage() {
       setErrors(validationErrors);
       return;
     }
-    // Implement your updateProfile logic here
-    // setIsUpdatingProfile(true);
-    // ...submit logic...
-    // setIsUpdatingProfile(false);
+    const formData = new FormData();
+    formData.append("email", form.email);
+    formData.append("password", form.password);
+    formData.append("role", form.role);
+    formData.append("last_seen", new Date().toISOString());
+    formData.append("first_name", form.first_name);
+    formData.append("last_name", form.last_name);
+    formData.append("gender", form.gender);
+    formData.append("cell_number", form.cell_number);
+    formData.append("address", form.address);
+    if (form.profile_image_id) {
+      formData.append("profile_image_id", form.profile_image_id);
+    }
+    if (form.profile_picture) {
+      formData.append("profile_picture", form.profile_picture);
+    }
+
+    // Use correct API path: /api/auth/update-profile/:_id
+    const userId = useAuthStore.getState().authUser?._id;
+    if (!userId) {
+      setErrors({ ...errors, general: "User not authenticated" });
+      return;
+    }
+    const ok = await updateProfile(formData);
+    if (ok) {
+      navigate("/");
+    }
   };
 
   return (
@@ -300,7 +374,7 @@ export default function ProfilePage() {
                         src={
                           useSelectedModeStore.getState().profile_picture
                             ? URL.createObjectURL(useSelectedModeStore.getState().profile_picture as File)
-                            : profilePicture
+                            : pic
                         }
                         alt="Profile"
                         width={208}

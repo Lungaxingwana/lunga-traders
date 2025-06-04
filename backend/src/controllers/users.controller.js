@@ -130,7 +130,6 @@ export const updateProfile = async (req, res) => {
     const { email, password, role, first_name, last_name, gender, cell_number, address, profile_image_id } = req.body;
     const _id  = req.params._id;
     const image = req.files?.profile_picture?.[0];
-
     try {
         if (!_id || !email || !password || !role || !first_name || !last_name || !gender || !cell_number || !address || !profile_image_id) {
             res.status(400).json({ message: "All fields are required" });
@@ -170,6 +169,8 @@ export const updateProfile = async (req, res) => {
                 return res.status(400).json({ error: 'Image upload failed', details: err.message });
             }
         }
+
+        console.log("New Profile Image ID: ", newProfileImageId);
 
         const updatedUser = await User.findByIdAndUpdate(
             _id,
