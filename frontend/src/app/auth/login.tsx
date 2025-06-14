@@ -57,7 +57,7 @@ export default function LoginPage() {
     <>
       <title>Lunga Traders | Login</title>
       <AnimatePresence mode="wait">
-        <div className="w-full h-full min-h-screen items-center px-4 bg-gradient-to-br from-stone-400 via-stone-100 to-stone-300 pt-16 flex flex-col ">
+        <div className="w-full justify-center h-full min-h-screen items-center px-4 bg-gradient-to-br from-stone-400 via-stone-100 to-stone-300 pt-16 flex flex-col ">
           <motion.div
             className="max-w-7xl w-full mx-auto justify-items-center"
             initial={{ opacity: 0, y: 50 }}
